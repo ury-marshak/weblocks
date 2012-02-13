@@ -2,6 +2,7 @@
 (in-package :weblocks)
 
 (export '(selector
+	  selector-tokens-unknown
           get-widget-for-tokens
           selector-base-uri
           static-selector
@@ -73,7 +74,19 @@
   (let ((widget (get-widget-for-tokens selector *uri-tokens*)))
     (if widget
       (update-dependents selector widget)
-      (assert (signal 'http-not-found)))))
+      (let ((tokens (remaining-tokens *uri-tokens*)))
+	;; Have to do this or else HANDLE-NORMAL-REQUEST gives a 404 even if
+	;; SELECTOR-TOKENS-UNKNOWN doesn't.
+	(setf (remaining-tokens *uri-tokens*) nil)
+	(selector-tokens-unknown selector tokens)))))
+
+(defgeneric selector-tokens-unknown (selector tokens)
+  (:documentation
+    "Called from UPDATE-CHILDREN when a selector is given tokens it doesn't
+  recognize.")
+  (:method ((obj selector) tokens)
+    (declare (ignore tokens))
+    (assert (signal 'http-not-found))))
 
 
 (defwidget static-selector (selector)
