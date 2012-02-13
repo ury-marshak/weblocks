@@ -4,6 +4,7 @@
   (:shadowing-import-from :metabang.utilities #:format-date #:filter
 			  #:print-date)
   (:import-from :c2mop #:class-direct-superclasses )
+  (:shadowing-import-from :weblocks #:with-transaction)
   (:documentation
    "A driver for weblocks backend store API that connects to CLSQL."))
 
