@@ -94,7 +94,8 @@ Example:
 
 (defmethod render-validation-summary ((view form-view) obj (widget simpleform) errors)
     (declare (ignore view obj))
-    (call-next-method)#+off
+    (call-next-method)
+    #+off
     (when errors
       (with-html
         (:div :class "validation-errors-summary"
