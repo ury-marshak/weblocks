@@ -61,10 +61,10 @@
 		(push
 		 (cons email-field error)
 		 error-messages))
-		 ((eql result :PASSWORD)
-		  (push
-		   (cons password-field error)
-		   error-messages))))))))
+	       ((eql result :PASSWORD)
+		(push
+		 (cons password-field error)
+		 error-messages))))))))
      (if  error-messages
 	 (values nil error-messages)
 	 t)))
