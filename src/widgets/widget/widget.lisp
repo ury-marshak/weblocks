@@ -109,16 +109,21 @@ inherits from 'widget' if no direct superclasses are provided."
   (when name (setf (dom-id obj) name))
   (when children (setf (widget-children obj :widget) children)))
 
-(defgeneric make-widget (obj)
+(defgeneric make-widget (obj &key name)
   (:documentation "Create a widget from OBJ.")
-  (:method (obj)
+  (:method (obj &key name)
     "Create a widget from the printable (PRINC-TO-STRING) representation
      of OBJ."
     (warn "Fallback: Creating widget from printable representation of ~S (type ~S)" obj (type-of obj))
-    (make-instance 'string-widget :content (princ-to-string obj)))
-  (:method ((obj widget))
-    "MAKE-WIDGET is idempotent."
-    obj))
+    (make-instance 'string-widget :name name :content (princ-to-string obj)))
+  (:method ((obj widget) &key name)
+    "MAKE-WIDGET on a single widget is idempotent."
+    (declare (ignore name))
+    obj)
+  (:method ((children list) &key name)
+    "MAKE-WIDGET on a list assumes the list is a list of widgets, and creates a new
+     widget with those widgets as children."
+    (make-instance 'widget :name name :children children)))
 
 (defgeneric widget-name (obj)
   (:documentation "An interface to the DOM id of a widget. Provides
@@ -385,6 +390,7 @@ that will be applied before and after the body is rendered.")
 (defgeneric render-widget-children (obj &rest args)
   (:documentation "Renders the widget's children.")
   (:method (obj &rest args)
+    (declare (ignore args))
     (warn "Cannot update the widget children of ~S because it is not a widget."
           obj))
   (:method ((obj widget) &rest args)
@@ -392,7 +398,12 @@ that will be applied before and after the body is rendered.")
 to render widgets of a certain type."
     (mapc (lambda (child)
             (apply #'render-widget child args))
-          (widget-children obj))))
+          (widget-children obj)))
+  ;; Don't warn for known likely cases
+  (:method ((obj function) &rest args)
+    (declare (ignore args)))
+  (:method ((obj string) &rest args)
+    (declare (ignore args))))
 
 (defgeneric render-widget-body (obj &rest args &key &allow-other-keys)
   (:documentation
@@ -403,7 +414,7 @@ order to actually render the widget, call 'render-widget' instead.
   (:method (obj &rest args)
     (typecase obj
       ((or string symbol function)
-       (warn "Implicitly calling MAKE-WIDGET to render ~S." obj)
+       ;(warn "Implicitly calling MAKE-WIDGET to render ~S." obj)
        (apply #'render-widget-body (make-widget obj) args))
       (t
        (error "I don't know how to render ~S.~%" obj))))

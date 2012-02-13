@@ -22,7 +22,7 @@
     (with-html
       (:p :id id :class class (str content)))))
                    
-(defmethod make-widget ((obj string))
+(defmethod make-widget ((obj string) &key name)
   "Create a widget from a string."
   (make-instance 'string-widget :content obj))
 
