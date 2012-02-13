@@ -21,11 +21,11 @@
       (function
         (apply fun-designator args)))))
                    
-(defmethod make-widget ((obj symbol))
+(defmethod make-widget ((obj symbol) &key name)
   "Create a widget from a symbol denoting a function."
   (make-instance 'funcall-widget :fun-designator obj))
 
-(defmethod make-widget ((obj function))
+(defmethod make-widget ((obj function) &key name)
   "Create a widget from a function object."
   (make-instance 'funcall-widget :fun-designator obj))
 
