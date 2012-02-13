@@ -261,7 +261,8 @@ customize behavior."))
     (gethash *session* *session-locks*)))
 
 (defmethod handle-normal-request ((app weblocks-webapp))
-  (declare (special *weblocks-output-stream*
+  (declare (special *current-page-description*
+		    *weblocks-output-stream*
                     *uri-tokens*))
   ; we need to render widgets before the boilerplate HTML
   ; that wraps them in order to collect a list of script and
