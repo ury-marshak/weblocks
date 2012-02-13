@@ -78,7 +78,8 @@ headers on top and three on the bottom. It uses
                         (:input :name *action-string* :type "hidden" :value ,action-code))))))
        (log-form ,action-code :id ,id :class ,class))))
 
-(defun render-link (action label &key (ajaxp t) id class title render-fn)
+(defun render-link (action label &key (ajaxp t) id class title render-fn
+			   uri-path)
   "Renders an action into a href link. If AJAXP is true (the
 default), the link will be rendered in such a way that the action will
 be invoked via AJAX or will fall back to a regular request if
@@ -90,14 +91,17 @@ ID, CLASS and TITLE represent their HTML counterparts.
 RENDER-FN is an optional function of one argument that is reponsible
 for rendering the link's content (i.e. its label). The default rendering
 function just calls PRINC-TO-STRING on the label and renders it
-without escaping."
+without escaping. If URI-PATH is supplied, it is used instead of the
+current request URI as the base of the link URI; a non-AJAX link is
+rendered in this case \(this is to force the browser to a particular
+location)."
   (declare (optimize (speed 3) (space 2)))
   (let* ((*print-pretty* nil)
          (action-code (function-or-action->action action))
-	 (url (make-action-url action-code)))
+	 (url (make-action-url action-code :uri-path uri-path)))
     (with-html
       (:a :id id :class class
-	  :href url :onclick (when ajaxp
+	  :href url :onclick (when (and ajaxp (null uri-path))
 			       (format nil "initiateAction(\"~A\", \"~A\"); return false;"
 				       action-code (session-name-string-pair)))
 	  :title title
