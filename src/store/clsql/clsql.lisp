@@ -3,6 +3,7 @@
   (:use :cl :metabang.utilities :clsql :weblocks)
   (:shadowing-import-from :metabang.utilities #:format-date #:filter
 			  #:print-date)
+  (:import-from :c2mop #:class-direct-superclasses )
   (:documentation
    "A driver for weblocks backend store API that connects to CLSQL."))
 
@@ -49,7 +50,7 @@
 (defmethod persist-object ((store database) object &key)
   ;; Note, we persist new objects in three steps, this should be
   ;; optimized into a single query later
-  (let* ((class-name (class-name (class-of object)))
+  (let* ((class-name (class-name (class-root-class (class-of object))))
 	 (current-id (object-id object))
 	 (sequence-name (make-symbol (concatenate 'string
 						  (symbol-name class-name)
@@ -71,6 +72,13 @@
 	(when (and (not success)
 		   (null current-id))
 	  (setf (object-id object) nil))))))
+
+;;; Exists to support normalized subclasses, which should use the key sequence
+;;; of their root class (i.e. the entire hierarchy shares a sequence).
+(defun class-root-class (class)
+  (if (clsql-sys::normalizedp class)
+      (class-root-class (car (class-direct-superclasses class)))
+    class))
 
 (defmethod delete-persistent-object ((store database) object)
   (delete-instance-records object))
