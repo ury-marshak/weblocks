@@ -324,8 +324,8 @@ selection slot (both are accepted for convinience)."
   (let ((state (car (dataseq-selection obj)))
 	(items (cdr (dataseq-selection obj))))
     (ecase state
-      ;(:all (not (member item-id items :test #'string-equal)))
-      (:none (member (princ-to-string item-id) items :test #'string-equal :key #'princ-to-string)))))
+      ;(:all (not (member item-id items :test #'equal)))
+      (:none (member item-id items :test #'equal)))))
 
 (defun dataseq-select-item (obj item-id)
   "Marks an item in the dataseq as selected."
