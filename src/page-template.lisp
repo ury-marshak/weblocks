@@ -69,7 +69,7 @@ page HTML (title, stylesheets, etc.).  Can be overridden by subclasses"))
 	      (:title (str (application-page-title app)))
 	      (render-page-headers app)
 	      (mapc #'render-dependency-in-page-head all-dependencies))
-	     (:body
+	     (:body :onload "checkTZCookie();"
 	      (render-page-body app rendered-html)
 	      (:div :id "ajax-progress" "&nbsp;")
               (with-javascript "updateWidgetStateFromHash();"))))))
