@@ -5,6 +5,8 @@
 	  navigation-pane-names navigation-menu-items navigation-header
           navigation-hidden-panes navigation-render-content-p))
 
+(export '(lazy-navigation make-lazy-navigation))
+
 (defwidget navigation (static-selector)
   ((pane-names :accessor navigation-pane-names
 	       :initarg :pane-names
@@ -33,6 +35,12 @@
   tabbed control, etc. It is a static-selector that also knows what its
   pane names are, so it can render a menu, set a page title, and
   contribute to navigation breadcrumbs."))
+
+(defwidget lazy-navigation (navigation)
+  ()
+  (:documentation "Lazy navigation does not create the entire widget
+  tree immediately. Instead, parts of the widget tree are created as
+  they are needed."))
 
 (defun navigation-pane-name-for-token (navigation token)
   "Return the pane name for a given uri-token or NIL if not found. Token
@@ -131,14 +139,6 @@ widgets bears the title NAME."
     (apply #'init-navigation nav args)
     nav))
 
-
-(export '(lazy-navigation make-lazy-navigation))
-
-(defwidget lazy-navigation (navigation)
-  ()
-  (:documentation "Lazy navigation does not create the entire widget
-  tree immediately. Instead, parts of the widget tree are created as
-  they are needed."))
 
 (defmethod static-selector-get-pane ((navigation lazy-navigation) token)
   "Lazily resolve the pane. Also ensures that the resulting
