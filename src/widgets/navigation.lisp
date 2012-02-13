@@ -28,7 +28,11 @@
 		   :documentation "Whether navigation should also render
 		   its contents. You want to set this to nil if you use
 		   the teleport widget to render the contents
-		   elsewhere."))
+		   elsewhere.")
+   (extra-menu-items :accessor navigation-extra-menu-items
+		     :initarg :extra-menu-items
+		     :initform nil
+		     :documentation "Additional items for RENDER-MENU."))
   (:documentation "The navigation widget can act as a menu controls, a
   tabbed control, etc. It is a static-selector that also knows what its
   pane names are, so it can render a menu, set a page title, and
@@ -43,14 +47,16 @@ may be NIL in which case the default pane name is provided."
   (:documentation "Returns the menu items for a navigation object
   in a format suitable for RENDER-MENU. Hidden panes will not be included.")
   (:method ((obj navigation))
-    (remove nil
-            (mapcar (lambda (pane)
-                      (let ((token (car pane)))
-                        (unless (member token (navigation-hidden-panes obj)
-                                        :test #'string-equal)
-                          (cons (navigation-pane-name-for-token obj token)
-                                (uri-tokens-to-string token)))))
-                    (static-selector-panes obj)))))
+    (append
+      (remove nil
+	      (mapcar (lambda (pane)
+			(let ((token (car pane)))
+			  (unless (member token (navigation-hidden-panes obj)
+					  :test #'string-equal)
+			    (cons (navigation-pane-name-for-token obj token)
+				  (uri-tokens-to-string token)))))
+		      (static-selector-panes obj)))
+      (navigation-extra-menu-items obj))))
 
 (defgeneric render-navigation-menu (obj &rest args)
   (:documentation "Renders the HTML menu for the navigation widget.")
