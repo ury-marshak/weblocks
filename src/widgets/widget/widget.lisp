@@ -219,6 +219,8 @@ children of w (e.g. may be rendered when w is rendered).")
   (:method progn (function widget)
     (mapc function (widget-children widget))))
 
+;;; Currently broken for widgets that are not of a subclass of SELECTOR.
+;;; See (SETF WIDGET-CHILDREN) above.
 (defgeneric update-children (widget)
   (:documentation "Called during the tree shakedown phase (before
   rendering) while walking the widget tree. Implement this method for

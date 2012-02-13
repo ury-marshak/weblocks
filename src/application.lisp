@@ -145,7 +145,9 @@
                          widget at the root of the application. 'init-user-session' is
                          responsible for adding initial children to this widget.")
    (default-store-name
-    :accessor webapp-default-store-name :initarg :default-store :type symbol
+    :accessor webapp-default-store-name
+    :initarg :default-store	; N.B., not :default-store-name !
+    :type symbol
     :documentation "If non-nil, the name of the `*default-store*'
     bound during request handlers.")
    (session-key :type symbol :accessor weblocks-webapp-session-key :initarg :session-key)
