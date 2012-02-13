@@ -141,7 +141,7 @@
 						      parsers
 						      :components ((:file "common"))))
 					:depends-on (view formview dataview)))
-			  :depends-on ("weblocks" "dependencies" utils))
+			  :depends-on ("weblocks" "dependencies" "request-hooks" utils))
 		 (:module store
 			  :components ((:file "store-api")
 				       (:file "store-utils"))

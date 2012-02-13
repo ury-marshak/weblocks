@@ -1,12 +1,33 @@
 (in-package #:weblocks)
 
-(export '(date-parser date-printing-mixin
+(export '(session-timezone-offset
+	  date-parser date-printing-mixin
 	  date-presentation date-entry-presentation))
 
 (defconstant +seconds-per-day+ (* 24 60 60))
 
+;;; Request hook to get the browser's timezone.  Requires JavaScript.
+;;; See /pub/scripts/timezone.js.
+(defun set-up-timezone ()
+  (let ((tz (cookie-in "TimeZoneOffset")))
+    (when tz
+      (handler-case
+	  (setf (session-value ':timezone-offset) (/ (parse-integer tz) 60))
+	(error ())))))
+
+(pushnew 'set-up-timezone (request-hook :application :pre-action))
+
+(defun session-timezone-offset ()
+  "Returns the session timezone offset as hours west of UTC, if known; otherwise
+NIL.  Note that this can be a ratio in the case of a half-hour offset, as in India."
+  (session-value ':timezone-offset))
+
+
 (defun date->utime (day month year hour minute)
-  (encode-universal-time 0 minute hour day month year))
+  (encode-universal-time 0 minute hour day month year
+			 ;; N.B.: If we don't know the browser's timezone (because Javascript
+			 ;; is off), we'll use the server's timezone.  Better idea?
+			 (session-timezone-offset)))
 
 (defclass date-parser (parser)
   ()
@@ -44,7 +65,7 @@
 (defmethod print-view-field-value (value (presentation date-printing-mixin)
 				   field view widget obj &rest args)
   (declare (ignore obj view field widget args))
-  (format-date (date-printing-format presentation) value))
+  (format-date (date-printing-format presentation) value nil (session-timezone-offset)))
 
 (defclass date-presentation (text-presentation date-printing-mixin)
   ()
