@@ -89,15 +89,18 @@ it does not, signals an error."
 		  function-or-action
 		  (error "The value '~A' is not an existing action." function-or-action)))))))
 
-(defun make-action-url (action-code &optional (include-question-mark-p t))
+(defun make-action-url (action-code &key (include-question-mark-p t)
+				    uri-path)
   "Accepts action code and returns a URL that can be used to render
 the action. Used, among others, by 'render-link'.
 
 Ex:
 
-\(make-action-url \"test-action\") => \"?action=test-action\""
+\(make-action-url \"test-action\") => \"?action=test-action\"
+If URI-PATH is supplied, it is used instead of the current request
+URI as the base of the result."
   (concatenate 'string
-	       (request-uri-path) ; we need this for w3m
+	       (or uri-path (request-uri-path)) ; we need this for w3m
 	       (if include-question-mark-p "?" "")
                *action-string* "="
 	       (url-encode (princ-to-string action-code))))
