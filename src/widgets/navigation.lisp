@@ -150,7 +150,7 @@ widget will get cached instead of the generator."
 
 (defun make-lazy-navigation (name &rest args)
   "Convenience function to create a lazy navigation."
-  (apply #'make-navigation (append args '(:navigation-class lazy-navigation))))
+  (apply name #'make-navigation (append args '(:navigation-class lazy-navigation))))
 
 
 (export '(teleport teleport-source teleport-key))
