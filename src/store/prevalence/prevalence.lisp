@@ -53,6 +53,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Creating and deleting persistent objects ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defgeneric storage-class-name-of (class-name))
+(defmethod storage-class-name-of (class-name)
+  class-name)
+
 (defclass persistent-objects-of-class ()
   ((objects-by-id :initform (make-hash-table)
 		  :accessor persistent-objects-of-class-by-id
@@ -75,8 +80,8 @@
 (defun tx-persist-object-prevalence (store object)
   "Persists the object in the store."
   (let* ((class-name (class-name (class-of object)))
-	 (objects (or (get-root-object store class-name)
-		      (setf (get-root-object store class-name)
+	 (objects (or (get-root-object store (storage-class-name-of class-name))
+		      (setf (get-root-object store (storage-class-name-of class-name))
 			    (make-instance 'persistent-objects-of-class))))
 	 (object-id (object-id object)))
     ; assign object id
@@ -100,18 +105,18 @@
 
 (defun tx-delete-object-by-id-prevalence (store class-name object-id)
   "Delets a persistent object from the store."
-  (let ((objects (get-root-object store class-name)))
+  (let ((objects (get-root-object store (storage-class-name-of class-name))))
     ; delete the object
     (remhash object-id (persistent-objects-of-class-by-id objects))
     ; delete table if necessary
     (when (eq (hash-table-count (persistent-objects-of-class-by-id objects)) 0)
-      (remove-root-object store class-name))))
+      (remove-root-object store (storage-class-name-of class-name)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Querying persistent objects ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmethod find-persistent-object-by-id ((store prevalence-system) class-name object-id)
-  (let ((objects (get-root-object store class-name)))
+  (let ((objects (get-root-object store (storage-class-name-of class-name))))
     ; find the object
     (when objects
       (gethash object-id (persistent-objects-of-class-by-id objects)))))
@@ -149,7 +154,7 @@ requires all objects to have the given value in the given slot."
 
 (defun tx-find-persistent-objects-prevalence (store class-name)
   "Finds persistent objects of a given class."
-  (let ((objects (get-root-object store class-name)))
+  (let ((objects (get-root-object store (storage-class-name-of class-name))))
     (when objects
       (loop for i being the hash-values in (persistent-objects-of-class-by-id objects)
 	 collect i))))
