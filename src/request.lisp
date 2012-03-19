@@ -62,6 +62,12 @@ DEFER is disregarded in this case.
 
 NEW-WINDOW functionality will only work when Javascript is enabled."
   (assert (member defer '(nil :post-action :post-render)))
+  (when (and (plusp (length uri))
+	     (eql (char uri 0) #\/)
+	     *rewrite-for-session-urls*
+	     (null (cookie-in (session-cookie-name *weblocks-server*))))
+    (setq uri (add-get-param-to-url uri (session-cookie-name *weblocks-server*)
+				    (hunchentoot:session-cookie-value *session*))))
   (flet ((do-redirect ()
            (if (ajax-request-p)
              (progn
