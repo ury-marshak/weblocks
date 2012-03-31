@@ -54,7 +54,7 @@ the navigation as disabled."
                                      (etypecase target
                                        (string
                                         (if (or pane-selected-p pane-disabled-p)
-                                          (htm (:span :class "label" (str label)))
+                                          (htm (:span :class "selected" (str label)))
                                           (htm (:a :href
                                                    (concatenate 'string
                                                                 (string-right-trim "/" base)

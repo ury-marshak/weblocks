@@ -35,7 +35,7 @@
   (if (null value)
       (call-next-method)
       (with-html
-	(:a :href value
+	(:a :href value :class "user-link"
 	    :rel (and (url-presentation-nofollow presentation) "nofollow")
 	    :onclick "stopPropagation(event);"
 	    (flet ((out (x)
