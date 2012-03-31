@@ -74,8 +74,8 @@ table, thead, and tbody HTML.")
 	    &key summary &allow-other-keys)
     (with-html
       (:table :summary (or summary (table-view-default-summary view))
-	      (when (view-caption view)
-		(htm (:caption (str (view-caption view)))))
+	      ;(when (view-caption view)
+	      ;  (htm (:caption (str (view-caption view)))))
 	      (htm
 	       (:thead
 		(apply header-fn view (car obj) widget args))
