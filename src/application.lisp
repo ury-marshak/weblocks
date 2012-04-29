@@ -95,6 +95,12 @@
               If NIL (the default), don't care about the hostname at all.
          
               TODO: support regex matching here.")
+   (force-hostname :type (or null string)
+		   :reader weblocks-webapp-force-hostname
+		   :initarg :force-hostname
+		   :documentation
+		   "If supplied, must match one of HOSTNAMES; if the client supplies a
+		   hostname other than this one, we redirect them (301) to this one.")
    (prefix :type string
            :reader weblocks-webapp-prefix
            :initarg :prefix

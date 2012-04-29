@@ -49,6 +49,8 @@ to the SSL port."))
 (defmethod acceptor-dispatch-request ((acceptor ssl-redirect-acceptor) request)
   (hunchentoot:redirect (request-uri* request)
 			:protocol ':https
-			:port (ssl-redirect-acceptor-ssl-port acceptor)
+			:port (let ((p (ssl-redirect-acceptor-ssl-port acceptor)))
+				(and (/= p 443) p))
+			:code +http-moved-permanently+
 			:add-session-id nil))
 
