@@ -41,7 +41,15 @@
 	       :initarg :ssl-port
 	       :initform 443
 	       :documentation
-	       "The port used by the SSL acceptor."))
+	       "The port used by the SSL acceptor.")
+     (hostname :reader ssl-redirect-acceptor-hostname
+	       :initarg :hostname
+	       :initform nil
+	       :documentation
+	       ;; A slight oversimplification, but close enough.
+	       "If you are using the :force-hostname initarg to weblocks-webapp,
+	       you must supply the same hostname here, so the certificate name
+	       will match the hostname."))
   (:documentation
     "A very simple acceptor for handling non-SSL requests and redirecting them
 to the SSL port."))
@@ -49,6 +57,7 @@ to the SSL port."))
 (defmethod acceptor-dispatch-request ((acceptor ssl-redirect-acceptor) request)
   (hunchentoot:redirect (request-uri* request)
 			:protocol ':https
+			:host (or (ssl-redirect-acceptor-hostname acceptor) (host request))
 			:port (let ((p (ssl-redirect-acceptor-ssl-port acceptor)))
 				(and (/= p 443) p))
 			:code +http-moved-permanently+
