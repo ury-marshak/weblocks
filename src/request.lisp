@@ -65,6 +65,7 @@ NEW-WINDOW functionality will only work when Javascript is enabled."
   (when (and (plusp (length uri))
 	     (eql (char uri 0) #\/)
 	     *rewrite-for-session-urls*
+	     *session*
 	     (null (cookie-in (session-cookie-name *weblocks-server*))))
     (setq uri (add-get-param-to-url uri (session-cookie-name *weblocks-server*)
 				    (hunchentoot:session-cookie-value *session*))))
