@@ -183,7 +183,7 @@ instances of 'class-name' and order them with 'order-by'."
 		      (sql-operation 'slot-value
 				     (last-element (class-order-by-join-classes class-name order-by))
 				     (last-element order-path))
-		      (sql-expression :attribute order-path))
+		      (sql-operation 'slot-value class-name order-path))
 		  (cdr order-by))))))
 
 (defun range-to-offset (range)
