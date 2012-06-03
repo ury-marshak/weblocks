@@ -331,7 +331,7 @@ form-view-buttons for a given view.")
                                    (attributize-view-field-name field-info)
                                    (attributize-name (view-field-slot-name field))))
 	 (validation-error (assoc field validation-errors))
-	 (field-class (concatenate 'string (aif attributized-slot-name it "")
+	 (field-class (concatenate 'string "field-" (aif attributized-slot-name it "")
 				   (when validation-error " item-not-validated")))
          (*presentation-dom-id* (gen-id)))
     (with-html
