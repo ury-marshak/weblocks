@@ -155,8 +155,22 @@ before relations can be updated."))
                        presented to the user when the field is
                        required and missing from the input
                        data. Otherwise, the standard required error
-                       message is presented."))
+                       message is presented.")
+   (disabledp :initform nil
+	      :initarg :disabledp
+	      :accessor form-view-field-raw-disabled-p
+	      :documentation "A predicate that determines whether the
+	      field is disabled.  This can be either a constant
+	      't' or 'nil', or a function of one argument, the object
+	      to which the view applies."))
   (:documentation "A field class of the form view."))
+
+(defgeneric form-view-field-disabled-p (field obj)
+  (:method ((field form-view-field) obj)
+    (let ((raw-value (form-view-field-raw-disabled-p field)))
+      (if (functionp raw-value)
+	  (funcall raw-value obj)
+	raw-value))))
 
 (defun get-required-error-msg (form-view-field)
   "Returns an error message for a missing required field."
@@ -346,6 +360,7 @@ form-view-buttons for a given view.")
 				   (str ":&nbsp;"))
 				 (let ((required-indicator (form-view-field-required-indicator field)))
 				   (when (and (form-view-field-required-p field)
+					      (not (form-view-field-disabled-p field obj))
 					      required-indicator)
 				     (htm (:em :class "required-slot"
 					       (if (eq t required-indicator)
@@ -374,6 +389,7 @@ form-view-buttons for a given view.")
 	(form-field-intermediate-value field intermediate-values)
       (with-html
 	  (:input :type "text" :name attributized-slot-name
+		  :disabled (and (form-view-field-disabled-p field obj) "disabled")
 		  :value (if intermediate-value-p
 			     intermediate-value
 			     (apply #'print-view-field-value value presentation field view widget obj args))

@@ -110,17 +110,19 @@ location)."
                    label)))
     (log-link label action-code :id id :class class)))
 
-(defun render-button (name  &key (value (humanize-name name)) id (class "submit"))
+(defun render-button (name  &key (value (humanize-name name)) id (class "submit") disabledp)
   "Renders a button in a form.
 
 'name' - name of the html control. The name is attributized before
 being rendered.
 'value' - a value on html control. Humanized name is default.
 'id' - id of the html control. Default is nil.
-'class' - a class used for styling. By default, \"submit\"."
+'class' - a class used for styling. By default, \"submit\".
+'disabledp' - button is disabled if true."
   (with-html
     (:input :name (attributize-name name) :type "submit" :id id :class class
-	    :value value :onclick "disableIrrelevantButtons(this);")))
+	    :value value :disabled (and disabledp "disabled")
+	    :onclick "disableIrrelevantButtons(this);")))
 
 (defun render-form-and-button (name action &key (value (humanize-name name))
 			       (method :get)
@@ -134,26 +136,30 @@ cut to quickly render a sumbit button."
 			  :id form-id :class form-class)
     (render-button name :value value :id button-id :class button-class)))
 
-(defun render-checkbox (name checkedp &key id (class "checkbox") onclick)
+(defun render-checkbox (name checkedp &key id (class "checkbox") onclick disabledp)
   "Renders a checkbox in a form.
 
 'name' - name of the html control. The name is attributized before
 being rendered.
 'checkedp' - if true, renders the box checked.
 'id' - id of the html control. Default is nil.
-'class' - a class used for styling. By default, \"submit\"."
+'class' - a class used for styling. By default, \"submit\".
+'disabledp' - input is disabled if true."
   (with-html
-    (if checkedp
-	(htm (:input :name (attributize-name name) :type "checkbox" :id id :class class
-		     :value "t" :checked "checked" :onclick onclick))
-	(htm (:input :name (attributize-name name) :type "checkbox" :id id :class class
-		     :value "f" :onclick onclick)))))
+    (htm (:input :name (attributize-name name) :type "checkbox" :id id :class class
+		 :value (if checkedp "t" "f")
+		 :checked (and checkedp "checked")
+		 :disabled (and disabledp "disabled")
+		 :onclick onclick))))
 
 (defparameter *dropdown-welcome-message* "[Select ~A]"
   "A welcome message used by dropdowns as the first entry.")
 
 (defun render-dropdown (name selections &key id class selected-value
-                        disabled onchange welcome-name multiple autosubmitp
+                        ;; 'disabled' was here already; adding 'disabledp' for
+			;; consistency with many other routines.
+			disabled (disabledp disabled)
+			onchange welcome-name multiple autosubmitp
                         tabindex (frob-welcome-name t))
   "Renders a dropdown HTML element (select).
 
@@ -183,7 +189,9 @@ and cdr will be returned as value in case it's selected.
 'autosubmitp' - determines if the dropdown automatically submits
 itself on selection. Note, if the parent form uses ajax, the dropdown
 will submit an ajax request. Otherwise, a regular request will be
-submitted."
+submitted.
+
+'disabledp' - input is disabled if true."
   (when welcome-name
     (setf welcome-name (car (list->assoc (list welcome-name)
 					 :map (constantly "")))))
@@ -191,7 +199,7 @@ submitted."
     (:select :id id
 	     :class class
              :tabindex tabindex
-             :disabled disabled
+             :disabled (and disabledp "disabled")
 	     :name (attributize-name name)
 	     :onchange (or onchange
                            (when autosubmitp
@@ -234,7 +242,8 @@ presented to the user."
 		    :id submit-id :class submit-class))))
 
 (defun render-radio-buttons (name selections &key id (class "radio")
-                                                  (selected-value nil selected-value-supplied))
+                                                  (selected-value nil selected-value-supplied)
+						  disabledp)
   "Renders a group of radio buttons.
 
 'name' - name of radio buttons.
@@ -243,7 +252,8 @@ which case its car is used to dispaly selection text, and cdr is used
 for the value.
 'id' - id of a label that holds the radio buttons.
 'class' - class of the label and of radio buttons.
-'selected-value' - selected radio button value."
+'selected-value' - selected radio button value.
+'disabledp' - input is disabled if true."
   (loop for i in (list->assoc selections)
      for j from 1
      with count = (length selections)
@@ -256,7 +266,8 @@ for the value.
                   (htm (:input :name (attributize-name name) :type "radio" :class "radio"
                                :value (cdr i) :checked (when (and selected-value-supplied
                                                                   (equalp (cdr i) selected-value))
-                                                         "checked")))
+                                                         "checked")
+			       :disabled (and disabledp "disabled")))
                   (:span (str (format nil "~A&nbsp;" (car i))))))))
 
 (defun render-close-button (close-action &optional (button-string "(Close)"))
@@ -267,7 +278,8 @@ used instead of the default 'Close'."
     (:span :class "close-button"
 	   (render-link close-action (humanize-name button-string)))))
 
-(defun render-input-field (type name value &key id class maxlength style size onfocus onblur tabindex)
+(defun render-input-field (type name value &key id class maxlength style size
+			   onfocus onblur tabindex disabledp)
   (with-html
     (:input :type type :name (attributize-name name) :id id
             :size size
@@ -275,16 +287,18 @@ used instead of the default 'Close'."
             :style style
             :tabindex tabindex
             :onfocus onfocus
-            :onblur onblur)))
+            :onblur onblur
+	    :disabled (and disabledp "disabled"))))
 
 (defun render-password (name value &key (id (gen-id)) (class "password") maxlength style
-                        default-value size visibility-option-p tabindex)
+                        default-value size visibility-option-p tabindex disabledp)
     "Renders a password in a form.
 'name' - name of the html control. The name is attributized before being rendered.
 'value' - a value on html control.
 'id' - id of the html control. Default is nil.
  maxlength - maximum lentgh of the field
-'class' - a class used for styling. By default, \"password\"."
+'class' - a class used for styling. By default, \"password\".
+'disabledp' - input is disabled if true."
   (render-input-field "password" name value
                       :size size :id id :class class
                       :maxlength maxlength :style style
@@ -292,7 +306,8 @@ used instead of the default 'Close'."
                       :onfocus (when default-value
                                  (format nil "if (this.value==\"~A\") this.value=\"\";" default-value))
                       :onblur (when default-value
-                                (format nil "if (this.value==\"\") this.value=\"~A\";" default-value)))
+                                (format nil "if (this.value==\"\") this.value=\"~A\";" default-value))
+		      :disabledp disabledp)
   (when visibility-option-p
     (send-script (ps:ps*
                    `(defun toggle-password-visibility (field)
@@ -306,7 +321,7 @@ used instead of the default 'Close'."
                          :onclick (format nil "togglePasswordVisibility(\"~A\")" id))
         (esc "Show password")))))
 
-(defun render-textarea (name value rows cols &key id class)
+(defun render-textarea (name value rows cols &key id class disabledp)
   "Renders a textarea in a form.
 'name' - name of the html control. The name is attributized before being rendered.
 'value' - a value on html control. Humanized name is default.
@@ -314,10 +329,11 @@ used instead of the default 'Close'."
 'maxlength' - maximum lentgh of the field  
 'rows' - number of rows in textarea
 'cols' - number of columns in textarea
-'class' - a class used for styling. By default, \"textarea\"."
+'class' - a class used for styling. By default, \"textarea\".
+'disabledp' - input is disabled if true."
   (with-html
       (:textarea :name (attributize-name name) :id id
-		 :rows rows :cols cols :class class
+		 :rows rows :cols cols :class class :disabled (and disabledp "disabled")
 		 (str (or value "")))))
 
 (defun render-list (seq &key render-fn (orderedp nil) id class

@@ -111,7 +111,7 @@ customize form behavior.")
 						(setf (slot-value obj 'validation-errors) errors)
 						(setf (slot-value obj 'intermediate-form-values)
 						      (apply #'request-parameters-for-object-view
-							     view args))))))
+							     view data args))))))
 				      (when cancel
 					(safe-funcall (dataform-on-cancel obj) obj)
 					(setf break-out t))
