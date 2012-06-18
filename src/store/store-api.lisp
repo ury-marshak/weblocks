@@ -61,8 +61,9 @@ completes normally, or rolling back if it does a nonlocal exit."
        (unwind-protect
 	    (progn
 	      (begin-transaction ,store-var)
-	      ,@body
-	      (setq ,success-var t))
+	      (multiple-value-prog1
+		  (progn . ,body)
+		(setq ,success-var t)))
 	 (if ,success-var
 	     (commit-transaction ,store-var)
 	   (rollback-transaction ,store-var))))))
