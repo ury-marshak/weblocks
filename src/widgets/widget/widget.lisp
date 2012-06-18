@@ -415,7 +415,7 @@ that will be applied before and after the body is rendered.")
   (:documentation "Renders the widget's children.")
   (:method (obj &rest args)
     (declare (ignore args))
-    (warn "Ignore." "Cannot update the widget children of ~S because it is not a widget."
+    (warn "Cannot update the widget children of ~S because it is not a widget."
           obj))
   (:method ((obj widget) &rest args)
  "Render all children. Specialize this method if you only want
@@ -436,7 +436,7 @@ order to actually render the widget, call 'render-widget' instead.
   (:method (obj &rest args)
     (typecase obj
       ((or string symbol function)
-       (warn "Ignore." "Implicitly calling MAKE-WIDGET to render ~S." obj)
+       (warn "Implicitly calling MAKE-WIDGET to render ~S." obj)
        (apply #'render-widget-body (make-widget obj) args))
       (t
        (error "I don't know how to render ~S.~%" obj))))
