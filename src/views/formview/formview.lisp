@@ -89,8 +89,9 @@ name of the field to inform users that the field is required.")
 	      :accessor form-view-satisfies
 	      :documentation "A function or a list of functions that
 perform validation on the entire view (possibly combining multiple fields).
-The function should expect keyword arguments corresponding to view slot
-names, each keyword argument corresponds to one of the parsed values.
+The first argument to the function is the object, still in its previous
+state, i.e. the new form values have not been stored in it yet.  The
+second argument is an alist of slot names and parsed values from the form.
 The function should either return t if the form validates properly, or
 values nil error-message if it does not.")
   (instructions :type (or string null)
