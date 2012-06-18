@@ -15,17 +15,19 @@
     (etypecase fun-designator
       (symbol
         (if (fboundp fun-designator)
-          (apply fun-designator args)
+          (apply fun-designator widget args)
           (error "Cannot render ~A as widget. Symbol not bound to a function."
                  fun-designator)))
       (function
-        (apply fun-designator args)))))
+        (apply fun-designator widget args)))))
                    
-(defmethod make-widget ((obj symbol) &key name)
+(defmethod make-widget ((obj symbol) &key name dom-class)
   "Create a widget from a symbol denoting a function."
-  (make-instance 'funcall-widget :fun-designator obj))
+  (declare (ignore name))
+  (make-instance 'funcall-widget :fun-designator obj :dom-class dom-class))
 
-(defmethod make-widget ((obj function) &key name)
+(defmethod make-widget ((obj function) &key name dom-class)
   "Create a widget from a function object."
-  (make-instance 'funcall-widget :fun-designator obj))
+  (declare (ignore name))
+  (make-instance 'funcall-widget :fun-designator obj :dom-class dom-class))
 

@@ -22,7 +22,8 @@
     (with-html
       (:p :id id :class class (str content)))))
                    
-(defmethod make-widget ((obj string) &key name)
+(defmethod make-widget ((obj string) &key name dom-class)
   "Create a widget from a string."
-  (make-instance 'string-widget :content obj))
+  (declare (ignore name))
+  (make-instance 'string-widget :content obj :dom-class dom-class))
 

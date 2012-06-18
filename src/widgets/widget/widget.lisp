@@ -34,7 +34,8 @@
           widget-equal
           widget-tree-equal
           copy-widget-tree
-          *current-widget*))
+          *current-widget*
+	  make-flow-widget))
 
 (defvar *tree-update-pending* nil
   "T if we're currently updating the widget tree.
@@ -96,7 +97,11 @@ inherits from 'widget' if no direct superclasses are provided."
 		     :documentation "A function called after rendering
 	             the widget body. The function should expect the
 	             widget as well as any additional arguments passed
-	             to the widget."))
+	             to the widget.")
+   (rendered-p :initform nil
+	       :accessor widget-rendered-p
+	       :documentation "Used internally to keep from marking
+	       widgets dirty before they've been rendered once."))
   #+lispworks (:optimize-slot-access nil)
   (:metaclass widget-class)
   (:documentation "Base class for all widget objects."))
@@ -109,22 +114,38 @@ inherits from 'widget' if no direct superclasses are provided."
   (when name (setf (dom-id obj) name))
   (when children (setf (widget-children obj :widget) children)))
 
-(defgeneric make-widget (obj &key name)
+(defgeneric make-widget (obj &key name dom-class)
   (:documentation "Create a widget from OBJ.")
-  (:method (obj &key name)
+  (:method (obj &key name dom-class)
     "Create a widget from the printable (PRINC-TO-STRING) representation
      of OBJ."
     (warn "Fallback: Creating widget from printable representation of ~S (type ~S)" obj (type-of obj))
-    (make-instance 'string-widget :name name :content (princ-to-string obj)))
-  (:method ((obj widget) &key name)
+    (make-instance 'string-widget :name name :content (princ-to-string obj) :dom-class dom-class))
+  (:method ((obj widget) &key name dom-class)
     "MAKE-WIDGET on a single widget is idempotent."
-    (declare (ignore name))
+    (declare (ignore name dom-class))
     obj)
-  (:method ((children list) &key name)
-    "MAKE-WIDGET on a list assumes the list is a list of widgets, and creates a new
-     widget with those widgets as children."
-    (make-instance 'widget :name name :children children)))
+  (:method ((children list) &key name dom-class)
+    "MAKE-WIDGET on a list calls MAKE-WIDGET on each member of the list, and creates
+     a new widget with those widgets as children.  EXCEPTION: signals an error if
+     the list contains a string; see the code for why."
+    (make-instance
+      'widget :name name :dom-class dom-class
+      :children
+      (mapcar (lambda (kid)
+		(if (stringp kid)
+		    (error "You have passed a string in a list to MAKE-WIDGET.~@
+			    This is an error because you might have called something~@
+			    like RENDER-LINK without having wrapped it in a lambda --~@
+			    a mistake that is easy to make and would be extremely~@
+			    difficult to debug if we didn't trap it here.  If you~@
+			    really intend this, call MAKE-WIDGET on the string yourself.~%~@
+			    The string: ~S" kid)
+		  (make-widget kid)))
+	      children))))
 
+;;; &&& Allowing anything but widgets in the widget tree was a bad idea.
+;;; Clean this up someday.
 (defgeneric widget-name (obj)
   (:documentation "An interface to the DOM id of a widget. Provides
   access to the underlying implementation, can return either a symbol, a
@@ -192,11 +213,12 @@ children of w (e.g. may be rendered when w is rendered).")
   This is especially important for DO-WIDGET and friends.")
   (:method (widgets (obj widget) &optional (type :widget))
     (let* ((children (copy-alist (slot-value obj 'children)))
-           (cell (assoc type children)))
+           (cell (assoc type children))
+	   (widgets (mapcar #'make-widget (ensure-list widgets))))
       (setf (slot-value obj 'children) 
             (cond
               ((and cell widgets)
-               (rplacd cell (ensure-list widgets))
+               (rplacd cell widgets)
                children)
               (cell
                (remove type children :key #'car))
@@ -393,19 +415,14 @@ that will be applied before and after the body is rendered.")
   (:documentation "Renders the widget's children.")
   (:method (obj &rest args)
     (declare (ignore args))
-    (warn "Cannot update the widget children of ~S because it is not a widget."
+    (warn "Ignore." "Cannot update the widget children of ~S because it is not a widget."
           obj))
   (:method ((obj widget) &rest args)
  "Render all children. Specialize this method if you only want
 to render widgets of a certain type."
     (mapc (lambda (child)
             (apply #'render-widget child args))
-          (widget-children obj)))
-  ;; Don't warn for known likely cases
-  (:method ((obj function) &rest args)
-    (declare (ignore args)))
-  (:method ((obj string) &rest args)
-    (declare (ignore args))))
+          (widget-children obj))))
 
 (defgeneric render-widget-body (obj &rest args &key &allow-other-keys)
   (:documentation
@@ -413,10 +430,13 @@ to render widgets of a certain type."
 order to actually render the widget, call 'render-widget' instead.
 
 'obj' - widget object to render.")
+  (:method :after (obj &rest args)
+    (declare (ignore args))
+    (setf (widget-rendered-p obj) t))
   (:method (obj &rest args)
     (typecase obj
       ((or string symbol function)
-       ;(warn "Implicitly calling MAKE-WIDGET to render ~S." obj)
+       (warn "Ignore." "Implicitly calling MAKE-WIDGET to render ~S." obj)
        (apply #'render-widget-body (make-widget obj) args))
       (t
        (error "I don't know how to render ~S.~%" obj))))
@@ -470,7 +490,7 @@ stylesheets and javascript links in the page header."))
    "Default implementation adds a widget to a list of dirty
 widgets. Normally used during an AJAX request. If there are any
 widgets in the 'propagate-dirty' slot of 'w' and 'propagate' is true
-(the default), these widgets are added to the dirty list as well.
+\(the default), these widgets are added to the dirty list as well.
 
 Note that this function is automatically called when widget slots are
 modified, unless slots are marked with affects-dirty-status-p.
@@ -482,10 +502,14 @@ PUTP is a legacy argument. Do not use it in new code."))
 
 (defmethod mark-dirty ((w widget) &key (propagate t propagate-supplied)
                                        (putp nil putp-supplied))
-  (declare (special *dirty-widgets*))
+  (declare (special *dirty-widgets*) (ignore putp))
   (and propagate-supplied putp-supplied
        (error "You specified both PROPAGATE and PUTP as arguments to MARK-DIRTY. Are you kidding me?"))
-  (unless (widget-dirty-p w)
+  (unless (or (widget-dirty-p w)
+	      ;; We can get here during object initialization, before the slot
+	      ;; is even bound.
+	      (not (and (slot-boundp w 'rendered-p)
+			(widget-rendered-p w))))
     (push w *dirty-widgets*)
     ;; NOTE: we have to check for unbound slots because this function
     ;; may get called at initialization time before those slots are bound
@@ -507,7 +531,8 @@ PUTP is a legacy argument. Do not use it in new code."))
 
 (defmethod print-object ((obj widget) stream)
   (print-unreadable-object (obj stream :type t)
-    (format stream "~S" (ensure-dom-id obj))))
+    (when (slot-boundp obj 'dom-id)
+	(format stream "~S" (ensure-dom-id obj)))))
 
 (defmethod get-widgets-by-type (type &key (include-subtypes-p t) (root (root-widget)))
   "Find all widgets of a specific type (or one of its subtypes
@@ -596,4 +621,19 @@ Slots will be copied shallowly except for CHILDREN."
 (defmethod update-state-from-location-hash ((widget location-hash-dependent) hash)
   (declare (ignore widget hash))
   nil)
+
+
+;;; A convenience macro for those who like to use flows.
+(defmacro make-flow-widget ((widget-var) &body body)
+  "Creates and returns a widget that runs a flow.  The WIDGET-VAR is bound
+to a second widget, which is a child of the one returned, and supplied to
+WITH-FLOW along with BODY."
+  (let ((w-var (gensym "W-")))
+    `(let ((,w-var (make-instance 'widget :dom-id (symbol-name ',w-var)))
+	   (,widget-var (make-instance 'widget)))
+       (setf (widget-children ,w-var) (list ,widget-var))
+       ;; This will run to the first 'yield', replacing the child widget, and return here.
+       (with-flow ,widget-var
+	 . ,body)
+       ,w-var)))
 
