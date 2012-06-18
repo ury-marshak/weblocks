@@ -629,7 +629,7 @@ Slots will be copied shallowly except for CHILDREN."
 to a second widget, which is a child of the one returned, and supplied to
 WITH-FLOW along with BODY."
   (let ((w-var (gensym "W-")))
-    `(let ((,w-var (make-instance 'widget :dom-id (symbol-name ',w-var)))
+    `(let ((,w-var (make-instance 'widget))
 	   (,widget-var (make-instance 'widget)))
        (setf (widget-children ,w-var) (list ,widget-var))
        ;; This will run to the first 'yield', replacing the child widget, and return here.
