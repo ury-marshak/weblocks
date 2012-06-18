@@ -164,11 +164,11 @@ widget will get cached instead of the generator."
   (let ((pane (call-next-method)))
     (cons
       (car pane)
-      (if (functionp (cdr pane)) (funcall (cdr pane)) (cdr pane)))))
+      (if (functionp (cdr pane)) (make-widget (funcall (cdr pane))) (cdr pane)))))
 
 (defun make-lazy-navigation (name &rest args)
   "Convenience function to create a lazy navigation."
-  (apply #'make-navigation (append args '(:navigation-class lazy-navigation))))
+  (apply #'make-navigation name (append args '(:navigation-class lazy-navigation))))
 
 
 (export '(teleport teleport-source teleport-key))
