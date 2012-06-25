@@ -223,7 +223,8 @@ children of w (e.g. may be rendered when w is rendered).")
               (cell
                (remove type children :key #'car))
               (widgets
-               (cons (cons type (ensure-list widgets)) children))))
+               (cons (cons type (ensure-list widgets)) children))
+	      (t children)))
       (when (and (ajax-request-p)
                  (not *tree-update-pending*)
                  (get-widgets-by-type 'selector :root obj))
