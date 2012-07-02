@@ -36,7 +36,10 @@ t (the default), calls the lookup-function to make a new one. Returns three
 values -- a widget, a list of consumed tokens, and a list of remaining
 tokens."
   (if (and (on-demand-selector-cache obj)
-	   (uri-tokens-start-with (remaining-tokens tokens) (car (on-demand-selector-cache obj))))
+	   (let ((cache-tokens (car (on-demand-selector-cache obj))))
+	     (if cache-tokens
+		 (uri-tokens-start-with (remaining-tokens tokens) cache-tokens)
+	       (null (remaining-tokens tokens)))))
       (progn
 	;; we have the widget cached, consume the right amount of tokens
 	(pop-tokens tokens (length (car (on-demand-selector-cache obj))))

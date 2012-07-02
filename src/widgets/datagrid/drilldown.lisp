@@ -47,13 +47,14 @@
 (defmethod with-table-view-body-row ((view table-view) obj (widget datagrid) &rest args
 				     &key alternp &allow-other-keys)
   (if (and (dataseq-allow-drilldown-p widget)
-	   (dataseq-on-drilldown widget))
-      (let ((row-action (make-action
-			 (lambda (&rest args)
-			   (declare (ignore args))
-			   (when (dataseq-autoset-drilled-down-item-p widget)
-			     (setf (dataseq-drilled-down-item widget) obj))
-			   (funcall (cdr (dataseq-on-drilldown widget)) widget obj))))
+	   (or (dataseq-on-drilldown widget) (dataseq-drilldown-link-url-fn widget)))
+      (let ((row-action (and (null (dataseq-drilldown-link-url-fn widget))
+			     (make-action
+			       (lambda (&rest args)
+				 (declare (ignore args))
+				 (when (dataseq-autoset-drilled-down-item-p widget)
+				   (setf (dataseq-drilled-down-item widget) obj))
+				 (funcall (cdr (dataseq-on-drilldown widget)) widget obj)))))
 	    (drilled-down-p (and (dataseq-drilled-down-item widget)
 				 (eql (object-id (dataseq-drilled-down-item widget))
 				      (object-id obj)))))
@@ -64,11 +65,23 @@
 				     (when alternp "altern")
 				     (when (and alternp drilled-down-p) " ")
 				     (when drilled-down-p "drilled-down")))
-	       :onclick (format nil "initiateActionOnEmptySelection(\"~A\", \"~A\");"
-				row-action (session-name-string-pair))
+	       :onclick (if (dataseq-drilldown-link-url-fn widget)
+			    (format nil "window.location.assign(\"~A\");"
+				    (funcall (dataseq-drilldown-link-url-fn widget) widget obj))
+			  (format nil "initiateActionOnEmptySelection(\"~A\", \"~A\");"
+				  row-action (session-name-string-pair)))
 	       :onmouseover "this.style.cursor = \"pointer\";"
 	       :style "cursor: expression(\"hand\");"
 	       (apply #'render-table-view-body-row view obj widget :row-action row-action args)))
 	(safe-apply (sequence-view-row-suffix-fn view) view obj args))
       (call-next-method)))
 
+(defmethod render-view-field-value (value (presentation text-presentation) (field table-view-field)
+				    view (widget datagrid) obj
+				    &rest args)
+  (declare (ignore args))
+  (if (eq (view-field-slot-name field) (dataseq-drilldown-link-field widget))
+      (with-html
+	(:a :href (funcall (dataseq-drilldown-link-url-fn widget) widget obj)
+	    (call-next-method)))
+    (call-next-method)))

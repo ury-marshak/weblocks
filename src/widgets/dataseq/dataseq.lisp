@@ -110,6 +110,25 @@
 		      :documentation "If set to true and
 		      'on-drilldown' isn't nil, dataseq provides the
 		      UI to drill down into items.")
+   ;; Use this if you want the browser's "back" button to return to the
+   ;; dataseq after a drilldown.  You'll probably want to subclass
+   ;; 'on-demand-selector' to handle the generated URLs.
+   (drilldown-link-url-fn :accessor dataseq-drilldown-link-url-fn
+			  :initform nil
+			  :initarg :drilldown-link-url-fn
+			  :documentation
+			  "If nonnull, drilldown is done by non-AJAX links.
+			  This should be a function of two arguments, the
+			  dataseq and the object, that returns the URL for
+			  drilling down on the object.")
+   ;; Use this if you want the user to be able to tell which items they've
+   ;; already drilled down on, using the visited-link color.
+   (drilldown-link-field :accessor dataseq-drilldown-link-field
+			 :initform nil
+			 :initarg :drilldown-link-field
+			 :documentation
+			 "If 'drilldown-link-url-field' is nonnull, any
+			 field with this name is rendered as an HTML link.")
    (on-drilldown :accessor dataseq-on-drilldown
 		 :initform nil
 		 :initarg :on-drilldown
