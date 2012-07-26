@@ -324,7 +324,7 @@ used instead of the default 'Close'."
 (defun render-textarea (name value rows cols &key id class disabledp)
   "Renders a textarea in a form.
 'name' - name of the html control. The name is attributized before being rendered.
-'value' - a value on html control. Humanized name is default.
+'value' - the initial contents of the textarea.  Escaped on output.
 'id' - id of the html control. Default is nil.
 'maxlength' - maximum lentgh of the field  
 'rows' - number of rows in textarea
@@ -334,7 +334,7 @@ used instead of the default 'Close'."
   (with-html
       (:textarea :name (attributize-name name) :id id
 		 :rows rows :cols cols :class class :disabled (and disabledp "disabled")
-		 (str (or value "")))))
+		 (esc (or value "")))))
 
 (defun render-list (seq &key render-fn (orderedp nil) id class
 		    (empty-message "There are no items in the list.")
