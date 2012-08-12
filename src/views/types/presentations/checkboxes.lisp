@@ -17,7 +17,7 @@
   (let* ((attribute-slot-name (attributize-name (view-field-slot-name field)))
          (validation-error (assoc attribute-slot-name validation-errors
                                   :test #'string-equal
-                                  :key #'view-field-slot-name))
+                                  :key (lambda (f) (and f (view-field-slot-name f)))))
          (field-class (concatenate 'string attribute-slot-name
                                    (when validation-error " item-not-validated"))))
     (with-html
