@@ -24,9 +24,8 @@
 		  (:span :class "slot-name"
 			 (:span :class "extra"
 				(str (view-field-label field)) ":&nbsp;"
-                                (when (and (form-view-field-required-p field)
-					   (not (form-view-field-disabled-p field obj)))
-                                  (htm (:em :class "required-slot" "(required)&nbsp;"))))))
+				(render-form-view-field-required-indicator
+				  field view widget presentation value obj))))
 	   (apply #'render-view-field-value
 		  value presentation
 		  field view widget obj

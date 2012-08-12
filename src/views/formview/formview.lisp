@@ -359,15 +359,8 @@ form-view-buttons for a given view.")
 				 (unless (empty-p (view-field-label field))
 				   (str (view-field-label field))
 				   (str ":&nbsp;"))
-				 (let ((required-indicator (form-view-field-required-indicator field)))
-				   (when (and (form-view-field-required-p field)
-					      (not (form-view-field-disabled-p field obj))
-					      required-indicator)
-				     (htm (:em :class "required-slot"
-					       (if (eq t required-indicator)
-						   (str *default-required-indicator*)
-						   (str required-indicator))
-					       (str "&nbsp;"))))))))
+				 (render-form-view-field-required-indicator
+				   field view widget presentation value obj))))
            (apply #'render-view-field-value
                   value presentation
                   field view widget obj
@@ -378,6 +371,19 @@ form-view-buttons for a given view.")
                       (:em
                         (:span :class "validation-error-heading" "Error:&nbsp;")
                         (str (format nil "~A" (cdr validation-error)))))))))))
+
+(defmethod render-form-view-field-required-indicator ((field form-view-field) (view form-view)
+						      widget presentation value obj)
+  (let ((required-indicator (form-view-field-required-indicator field)))
+    (when (and (form-view-field-required-p field)
+	       (not (form-view-field-disabled-p field obj))
+	       required-indicator)
+      (with-html
+	(:em :class "required-slot"
+	     (if (eq t required-indicator)
+		 (str *default-required-indicator*)
+		 (str required-indicator))
+	     (str "&nbsp;"))))))
 
 (defmethod render-view-field-value (value (presentation input-presentation)
 				    field view widget obj
