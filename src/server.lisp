@@ -201,6 +201,7 @@ rewriting in JavaScript code."
 
 (defun active-sessions ()
   "Returns a list of currently active sessions."
-  (loop for s in (mapcar #'cdr (session-db *weblocks-server*))
-        collect s))
+  (remove-if #'session-too-old-p
+	     (mapcar #'cdr (session-db *weblocks-server*))))
+(export 'active-sessions)
 
