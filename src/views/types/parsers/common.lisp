@@ -105,7 +105,8 @@
   (ignore-errors
     (let* ((presentp (text-input-present-p value))
 	   (float-value (when presentp
-                          (float (read-from-string value))))
+                          (let ((*read-eval* nil))
+			    (float (read-from-string value)))))
            (round-factor (awhen (float-parser-round parser)
                            (expt 10 (if (eq it t) 0 it)))))
       (unless (floatp float-value)
