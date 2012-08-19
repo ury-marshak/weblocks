@@ -568,12 +568,13 @@ the system specified by 'asdf-system-name', and goes into 'pub'."
                          (attributize-name
                           (weblocks-webapp-name app))))))
             (if (and path (probe-file path))
-                path
+                (setf (weblocks-webapp-public-files-path app) path)
                 (progn
                   (and (weblocks-webapp-debug app) (not warned)
                     (setf warned t)
                     (warn "Couldn't determine application's public files folder, using standard Weblocks files."))
-                  *default-public-files-path*)))))))
+                  (setf (weblocks-webapp-public-files-path app)
+			*default-public-files-path*))))))))
 
 (defgeneric compute-webapp-public-files-uri-prefix (app)
   (:documentation "Computes a virtual uri for public files of an
