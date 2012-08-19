@@ -33,7 +33,6 @@
 
 (defun start-weblocks (&rest keys &key (debug t) (port 8080)
                                        (acceptor-class 'weblocks-acceptor)
-				       webapp-args
 		       &allow-other-keys)
   "Starts weblocks framework hooked into Hunchentoot server.
 
@@ -61,11 +60,10 @@ declared AUTOSTART."
     (values
       (start (setf *weblocks-server*
                    (apply #'make-instance acceptor-class :port port
-                          (remove-keyword-parameters keys :port :debug :acceptor-class
-						     :webapp-args))))
+                          (remove-keyword-parameters keys :port :debug :acceptor-class))))
       (mapcar (lambda (class)
                 (unless (get-webapps-for-class class)
-                  (apply #'start-webapp class :debug debug webapp-args)))
+                  (start-webapp class :debug debug)))
               *autostarting-webapps*))))
 
 (defun stop-weblocks ()
