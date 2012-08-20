@@ -453,3 +453,15 @@ The caller is responsible for escaping all data."
                  (:dt :class (attributize-name dt) (str dt))
                  (:dd :class (attributize-name dt) (str dd)))))))
 
+
+(defun append-css-classes (&rest args)
+  "Appends the strings in ARGS, inserting spaces as separators.
+NIL is ignored; other symbols are downcased.  If all arguments
+are null, returns NIL."
+  (let ((result nil))
+    (dolist (arg args)
+      (when arg
+	(setq result (concatenate 'string result (and result " ")
+				  (if (symbolp arg) (string-downcase arg)
+				    arg)))))
+    result))

@@ -33,38 +33,38 @@
 			      (widget datagrid) presentation value obj &rest args
 			      &key row-action &allow-other-keys)
   (declare (ignore args))
-  (with-html
-    (:td :class (datagrid-drilldown-style (car (dataseq-on-drilldown widget)))
-	 (unless (ajax-request-p)
-	   (htm
-	    (:noscript
-	     (:div
-	      (render-link row-action
-			   (humanize-name (car (dataseq-on-drilldown widget)))
-			   :ajaxp nil))))))))
+  (unless (ajax-request-p)
+    (with-html
+      (:td :class (datagrid-drilldown-style (car (dataseq-on-drilldown widget)))
+	   (:noscript
+	     (:span :class "non-ajax-drilldown-link"
+		    (let ((label (view-field-label field)))
+		      (if (stringp row-action)
+			  (htm (:a :href row-action
+			       (str label)))
+			(render-link row-action label :ajaxp nil)))))))))
 
 ;;; Drilldown row
 (defmethod with-table-view-body-row ((view table-view) obj (widget datagrid) &rest args
 				     &key alternp &allow-other-keys)
   (if (and (dataseq-allow-drilldown-p widget)
 	   (or (dataseq-on-drilldown widget) (dataseq-drilldown-link-url-fn widget)))
-      (let ((row-action (and (null (dataseq-drilldown-link-url-fn widget))
-			     (make-action
-			       (lambda (&rest args)
-				 (declare (ignore args))
-				 (when (dataseq-autoset-drilled-down-item-p widget)
-				   (setf (dataseq-drilled-down-item widget) obj))
-				 (funcall (cdr (dataseq-on-drilldown widget)) widget obj)))))
+      (let ((row-action (if (dataseq-drilldown-link-url-fn widget)
+			    (funcall (dataseq-drilldown-link-url-fn widget) widget obj)
+			  (make-action
+			    (lambda (&rest args)
+			      (declare (ignore args))
+			      (when (dataseq-autoset-drilled-down-item-p widget)
+				(setf (dataseq-drilled-down-item widget) obj))
+			      (funcall (cdr (dataseq-on-drilldown widget)) widget obj)))))
 	    (drilled-down-p (and (dataseq-drilled-down-item widget)
 				 (eql (object-id (dataseq-drilled-down-item widget))
 				      (object-id obj)))))
 	(safe-apply (sequence-view-row-prefix-fn view) view obj args)
 	(with-html
-	  (:tr :class (when (or alternp drilled-down-p)
-			(concatenate 'string
-				     (when alternp "altern")
-				     (when (and alternp drilled-down-p) " ")
-				     (when drilled-down-p "drilled-down")))
+	  (:tr :class (append-css-classes "drillable"
+					  (and alternp "altern")
+					  (and drilled-down-p "drilled-down"))
 	       :onclick (if (dataseq-drilldown-link-url-fn widget)
 			    (format nil "window.location.assign(\"~A\");"
 				    (funcall (dataseq-drilldown-link-url-fn widget) widget obj))

@@ -142,7 +142,7 @@ inherits from 'widget' if no direct superclasses are provided."
 			    really intend this, call MAKE-WIDGET on the string yourself.~%~@
 			    The string: ~S" kid)
 		  (make-widget kid)))
-	      children))))
+	      (remove nil children)))))
 
 ;;; &&& Allowing anything but widgets in the widget tree was a bad idea.
 ;;; Clean this up someday.
