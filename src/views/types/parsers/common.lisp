@@ -108,7 +108,7 @@
                           (float (read-from-string value))))
            (round-factor (awhen (float-parser-round parser)
                            (expt 10 (if (eq it t) 0 it)))))
-      (unless (floatp float-value)
+      (when (and presentp (not (floatp float-value)))
         (error 'parse-error))
       (when (and float-value (number-parser-min parser))
 	(assert (>= float-value (number-parser-min parser))))
