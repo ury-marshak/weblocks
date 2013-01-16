@@ -59,14 +59,14 @@ inherits from 'widget' if no direct superclasses are provided."
 
 (defclass widget (dom-object-mixin)
   ((propagate-dirty :accessor widget-propagate-dirty
-		    :initform nil
-		    :initarg :propagate-dirty
-		    :documentation "A list of widgets which will be made
+                   :initform nil
+                   :initarg :propagate-dirty
+                   :documentation "A list of widgets which will be made
                     dirty when this widget is made dirty via a POST
                     request. This slot allows setting up dependencies
                     between widgets that will make multiple widgets
                     update automatically during AJAX requests.")
-   (continuation :accessor widget-continuation
+  (continuation :accessor widget-continuation
 		 :initform nil
 		 :documentation "Stores the continuation object for
                  widgets that were invoked via one of the do-*
@@ -96,7 +96,11 @@ inherits from 'widget' if no direct superclasses are provided."
 		     :documentation "A function called after rendering
 	             the widget body. The function should expect the
 	             widget as well as any additional arguments passed
-	             to the widget."))
+	             to the widget.")
+   (rendered-p :initform nil
+               :accessor widget-rendered-p
+               :documentation "Used internally to keep from marking
+               widgets dirty before they've been rendered once."))
   #+lispworks (:optimize-slot-access nil)
   (:metaclass widget-class)
   (:documentation "Base class for all widget objects."))
@@ -400,6 +404,9 @@ to render widgets of a certain type."
 order to actually render the widget, call 'render-widget' instead.
 
 'obj' - widget object to render.")
+  (:method :after (obj &rest args)
+    (declare (ignore args))
+    (setf (widget-rendered-p obj) t))
   (:method (obj &rest args)
     (typecase obj
       ((or string symbol function)
@@ -469,10 +476,14 @@ PUTP is a legacy argument. Do not use it in new code."))
 
 (defmethod mark-dirty ((w widget) &key (propagate t propagate-supplied)
                                        (putp nil putp-supplied))
-  (declare (special *dirty-widgets*))
+  (declare (special *dirty-widgets*) (ignore putp))
   (and propagate-supplied putp-supplied
        (error "You specified both PROPAGATE and PUTP as arguments to MARK-DIRTY. Are you kidding me?"))
-  (unless (widget-dirty-p w)
+  (unless (or (widget-dirty-p w)
+              ;; We can get here during object initialization, before the slot
+              ;; is even bound.
+              (not (and (slot-boundp w 'rendered-p)
+                        (widget-rendered-p w))))
     (push w *dirty-widgets*)
     ;; NOTE: we have to check for unbound slots because this function
     ;; may get called at initialization time before those slots are bound
