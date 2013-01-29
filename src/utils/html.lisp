@@ -150,7 +150,7 @@ being rendered.
 
 (defun render-dropdown (name selections &key id class selected-value
                         disabled onchange welcome-name multiple autosubmitp
-                        tabindex (frob-welcome-name t))
+                        tabindex (frob-welcome-name t) size)
   "Renders a dropdown HTML element (select).
 
 'name' - the name of html control. The name is attributized before
@@ -192,7 +192,8 @@ submitted."
 	     :onchange (or onchange
                            (when autosubmitp
                              "if(this.form.onsubmit) { this.form.onsubmit(); } else { this.form.submit(); }"))
-	     :multiple (when multiple "on" "off")
+	     :multiple (when multiple "multiple")
+             :size size
 	     (mapc (lambda (i)
 		     (if (member (princ-to-string (or (cdr i) (car i))) (ensure-list selected-value)
                                  :test #'string-equal :key #'princ-to-string)
