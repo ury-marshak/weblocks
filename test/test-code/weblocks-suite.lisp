@@ -43,7 +43,9 @@
 		      *uri-tokens* *on-ajax-complete-scripts*
 		      *before-ajax-complete-scripts*
 		      weblocks::*page-dependencies*)
-  (:setup (setf (slot-value *request* 'method) :get)
+  (:setup (setf *weblocks-server* *acceptor*)
+          (setf *request* (make-instance 'unittest-request :acceptor *acceptor*))
+          (setf (slot-value *request* 'method) :get)
           (setf generate-widget-id-orig #'gen-id)
           (setf (symbol-function 'gen-id)
 			      (lambda (&optional prefix)
