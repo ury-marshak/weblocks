@@ -43,4 +43,6 @@
                  (call-next-method))))
 
 
-
+(when (function hunchentoot:acceptor-status-message)
+  (defmethod acceptor-status-message :around ((acceptor weblocks-acceptor) (http-status-code (eql 500)) &key &allow-other-keys)
+    nil))
