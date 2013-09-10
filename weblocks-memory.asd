@@ -1,1 +1,1 @@
-./src/store/memory/weblocks-memory.asd
+src/store/memory/weblocks-memory.asd
