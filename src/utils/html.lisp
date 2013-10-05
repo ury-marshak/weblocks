@@ -390,12 +390,13 @@ in addition."
     (if (ajax-request-p)
       (let ((code (if (equalp (hunchentoot:header-in* "X-Weblocks-Client") "JQuery")
                     script
-                    (with-javascript-to-string script))))
+                    (with-javascript-to-string "~A" script))))
         (declare (special *before-ajax-complete-scripts* *on-ajax-complete-scripts*))
         (ecase place
           (:before-load (push code *before-ajax-complete-scripts*))
           (:after-load (push code *on-ajax-complete-scripts*))))
       (with-javascript
+        "~A"
         script))))
 
 (defun render-message (message &optional caption)
