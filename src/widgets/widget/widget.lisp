@@ -99,6 +99,7 @@ inherits from 'widget' if no direct superclasses are provided."
 	             to the widget.")
    (rendered-p :initform nil
                :accessor widget-rendered-p
+               :affects-dirty-status-p nil
                :documentation "Used internally to keep from marking
                widgets dirty before they've been rendered once."))
   #+lispworks (:optimize-slot-access nil)
