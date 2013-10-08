@@ -8,8 +8,8 @@
 
 (defsystem weblocks
   :name "weblocks"
-  :version "0.8.5"
-  :maintainer "Slava Akhmechet"
+  :version "0.8.12"
+  :maintainer "Olexiy Zamkoviy, Scott L. Burson"
   :author "Slava Akhmechet"
   :licence "LLGPL"
   :description "A Common Lisp web framework."
@@ -31,7 +31,9 @@
                :salza2
                :html-template
                :trivial-timeout
-               :trivial-backtrace)
+               :trivial-backtrace 
+               :parse-number 
+               :pretty-function)
   :components ((:module src
 		:components (
 		 (:file "package")
