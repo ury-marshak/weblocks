@@ -99,6 +99,7 @@ inherits from 'widget' if no direct superclasses are provided."
 	             to the widget.")
    (rendered-p :initform nil
                :accessor widget-rendered-p
+               :affects-dirty-status-p nil
                :documentation "Used internally to keep from marking
                widgets dirty before they've been rendered once."))
   #+lispworks (:optimize-slot-access nil)
@@ -439,6 +440,7 @@ stylesheets and javascript links in the page header."))
 
 (defmethod render-widget (obj &rest args &key inlinep &allow-other-keys)
   (declare (special *page-dependencies*))
+  (cl-user:!break "render-widget w:~A d:~A" obj *dirty-widgets* )
   (if (ajax-request-p)
     (mapc #'render-dependency-in-ajax-response (dependencies obj))
     (setf *page-dependencies*
@@ -479,16 +481,18 @@ PUTP is a legacy argument. Do not use it in new code."))
   (declare (special *dirty-widgets*) (ignore putp))
   (and propagate-supplied putp-supplied
        (error "You specified both PROPAGATE and PUTP as arguments to MARK-DIRTY. Are you kidding me?"))
-  (unless (or (widget-dirty-p w)
-              ;; We can get here during object initialization, before the slot
-              ;; is even bound.
-              (not (and (slot-boundp w 'rendered-p)
-                        (widget-rendered-p w))))
-    (push w *dirty-widgets*)
-    ;; NOTE: we have to check for unbound slots because this function
-    ;; may get called at initialization time before those slots are bound
-    (values t (when (and propagate (slot-boundp w 'propagate-dirty))
-                (mapc #'mark-dirty (remove nil (widget-propagate-dirty w)))))))
+  (prog1
+      (unless (or (widget-dirty-p w)
+                  ;; We can get here during object initialization, before the slot
+                  ;; is even bound.
+                  (not (and (slot-boundp w 'rendered-p)
+                            (widget-rendered-p w))))
+        (push w *dirty-widgets*)
+        ;; NOTE: we have to check for unbound slots because this function
+        ;; may get called at initialization time before those slots are bound
+        (values t (when (and propagate (slot-boundp w 'propagate-dirty))
+                    (mapc #'mark-dirty (remove nil (widget-propagate-dirty w))))))
+    (cl-user:!break "mark-dirty exit w:~A d:~A" w *dirty-widgets*)))
 
 (defun widget-dirty-p (w)
   "Returns true if the widget 'w' has been marked dirty."
