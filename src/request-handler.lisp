@@ -318,7 +318,7 @@ association list. This function is normally called by
 'handle-client-request' to service AJAX requests."
   (declare (special *dirty-widgets* *weblocks-output-stream*
 		    *before-ajax-complete-scripts* *on-ajax-complete-scripts*))
-  (cl-user:!break "~A" *dirty-widgets*)
+  (cl-user:!break "render-dirty-widgets d:~A" *dirty-widgets*)
   (setf (content-type*) *json-content-type*)
   (let ((render-state (make-hash-table :test 'eq)))
     (labels ((circularity-warn (w)
@@ -350,7 +350,7 @@ association list. This function is normally called by
 		     when (= 2 runs)
 		       do (late-propagation-warn dirty)
 		     do (setf *dirty-widgets* '())
-		     nconc (progn (cl-user:!break "before render-enqueued d:~A r:~A" dirty runs)
+		     nconc (progn (cl-user:!break "absorb-dirty-widgets before render-enqueued d:~A r:~A" dirty runs)
                             (render-enqueued dirty)))))
       (let ((rendered-widgets (absorb-dirty-widgets)))
         (write 
