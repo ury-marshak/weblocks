@@ -57,14 +57,14 @@ is no information available.")
   definitions in order to provide functionality necessary to support
   dataseq widgets."))
 
-;;; By default, turn off sorting on any field with a `reader', unless it also has
-;;; an `order-by'.
-(defmethod initialize-instance :after ((field view-field-sorting-mixin)
-				       &key allow-sorting-p &allow-other-keys)
-  (when (and (not allow-sorting-p)
-	     (slot-boundp field 'reader)
-	     (not (slot-boundp field 'order-by)))
-    (setf (view-field-sorting-mixin-allow-sorting-p field) nil)))
+;; ;;; By default, turn off sorting on any field with a `reader', unless it also has
+;; ;;; an `order-by'.
+;; (defmethod initialize-instance :after ((field view-field-sorting-mixin)
+;; 				       &key allow-sorting-p &allow-other-keys)
+;;   (when (and (not allow-sorting-p)
+;; 	     (slot-boundp field 'reader)
+;; 	     (not (slot-boundp field 'order-by)))
+;;     (setf (view-field-sorting-mixin-allow-sorting-p field) nil)))
 
 
 ;;; Sequence view field
